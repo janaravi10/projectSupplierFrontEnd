@@ -1,0 +1,44 @@
+.popup-parent {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    top: 0;
+    left: 0;
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgb(221, 221, 221);
+}
+
+.popup-holder {
+    width: 600px;
+    background-color: rgb(22, 160, 240);
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.input-holder {
+    width: 100%;
+}
+
+.alert {
+    color: red;
+    padding: 5px;
+}
+
+label {
+    display: inline-block;
+    width: 50%;
+    color: #303f9f;
+}
+
+.input-childs {
+    display: inline-block;
+    width: 48%;
+    padding: 0px 1%;
+}
+
+.button-group button {
+    margin: 5px;
+}

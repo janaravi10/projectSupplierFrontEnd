@@ -1,0 +1,20 @@
+/* class for adding margin bottom */
+
+.btn-addrow {
+    margin-bottom: 10px;
+}
+
+.red, .green {
+    margin: 0 10px;
+    color: #fff;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.red {
+    background-color: rgb(255, 97, 70);
+}
+
+.green {
+    background-color: rgb(8, 255, 202);
+}

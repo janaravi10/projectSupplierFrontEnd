@@ -1,0 +1,17 @@
+export const ADD_DETAIL = "ADD_DETAIL";
+export const SHOW_POPUP = "SHOW_POPUP";
+export const SHOW_ALERT = "SHOW_ALERT";
+export const DELETE_PRODUCT = "DELETE_PRODUCT";
+export const GET_PRODUCT = "GET_PRODUCT";
+export const FAILED_TO_FETCH = "FAILED_TO_FETCH";
+export const LOADING_DATA = "LOADING_DATA";
+
+export const CLEAR_NOTIFICATION = "CLEAR_NOTIFICATION";
+export const SHOW_NOTIFICATION = "SHOW_NOTIFICATION";
+
+// supplier action
+export const SUBMIT_SUPPLIER_DATA = "SUBMIT_SUPPLIER_DATA";
+export const CLOSE_SNACKBAR = "CLOSE_SNACKBAR";
+export const GET_SUPPLIER = "GET_SUPPLIER";
+export const FORM_SUBMITTED = "FORM_SUBMITTED";
+export const SET_VALUE = "SET_VALUE";
