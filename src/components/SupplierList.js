@@ -14,8 +14,13 @@ import Divider from "@material-ui/core/Divider";
 import IconButton from "@material-ui/core/IconButton";
 import Delete from "@material-ui/icons/Delete";
 import Create from "@material-ui/icons/Create";
+import Launch from "@material-ui/icons/Launch";
 import { connect } from "react-redux";
-import { getListOfSupplier, setValue } from "../actions/supplierAction";
+import {
+  getListOfSupplier,
+  setValue,
+  deleteSupplier
+} from "../actions/supplierAction";
 const styles = theme => ({
   container: {
     height: "100vh",
@@ -46,7 +51,9 @@ class SupplierList extends Component {
     if (!suppliers.length) {
       return (
         <ListItemText>
-          <Typography variant="h6">No suppliers available</Typography>
+          <Typography variant="h6" style={{ textAlign: "center" }}>
+            No suppliers available
+          </Typography>
         </ListItemText>
       );
     }
@@ -59,21 +66,15 @@ class SupplierList extends Component {
         <React.Fragment>
           <ListItem key={elem.transactionId}>
             <ListItemText primary={elem.transactionId} />
-            <Button
-              variant="contained"
-              color="primary"
-              component={Link}
-              to={{pathname: "/supplier",state: {currentSupplier: elem.transactionId}}}
-              data-transactionid={elem.transactionId}
-              // onClick={this.handleSupplierViewClick}
-            >
-              view supplier
-            </Button>
             <IconButton
+              component={Link}
+              to={{
+                pathname: "/supplier",
+                state: { currentSupplier: elem.transactionId }
+              }}
               data-transactionid={elem.transactionId}
-              aria-label="delete"
             >
-              <Delete />
+              <Launch />
             </IconButton>
             <IconButton
               data-transactionid={elem.transactionId}
@@ -81,6 +82,13 @@ class SupplierList extends Component {
               label="Comments"
             >
               <Create />
+            </IconButton>
+            <IconButton
+              data-transactionid={elem.transactionId}
+              aria-label="delete"
+              onClick={this.props.deleteSupplier.bind(this, elem.transactionId)}
+            >
+              <Delete />
             </IconButton>
           </ListItem>
           {isDivider}
@@ -91,30 +99,28 @@ class SupplierList extends Component {
   render() {
     const { classes } = this.props;
     return (
-      <Container className={classes.container} maxWidth="xl">
-        <Grid container>
-          <Grid item xs={12} sm={8} md={6} style={{ margin: "10px auto" }}>
-            <Paper>
-              <List component="nav" aria-label="Mailbox folders">
-                <ListItemText>
-                  <Typography variant="h6">
-                    SUPPLIERS TRANSACTION IDS
-                  </Typography>
-                </ListItemText>
-                <Divider light />
-                {this.loopSupplier()}
-              </List>
-            </Paper>
-          </Grid>
+      <Grid container>
+        <Grid item xs={12} sm={8} md={6} style={{ margin: "10px auto" }}>
+          <Paper>
+            <List component="nav" aria-label="Mailbox folders">
+              <ListItemText>
+                <Typography variant="h6" style={{ textAlign: "center" }}>
+                  SUPPLIERS TRANSACTION IDS
+                </Typography>
+              </ListItemText>
+              <Divider light />
+              {this.loopSupplier()}
+            </List>
+          </Paper>
         </Grid>
-      </Container>
+      </Grid>
     );
   }
 }
 const mapStateToProps = state => ({
   suppliers: state.supplier.suppliers
 });
-const mapDispatchToProps = { getListOfSupplier, setValue };
+const mapDispatchToProps = { getListOfSupplier, setValue, deleteSupplier };
 
 export default withRouter(
   connect(
