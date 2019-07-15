@@ -1,11 +1,8 @@
 import {
-  ADD_DETAIL,
   SHOW_POPUP,
   SHOW_ALERT,
-  DELETE_PRODUCT,
   GET_PRODUCT,
   FAILED_TO_FETCH,
-  LOADING_DATA,
   SET_VALUE,
   CLEAR_NOTIFICATION,
   SHOW_NOTIFICATION
@@ -62,20 +59,16 @@ export function showAlert(alertConfig) {
   };
 }
 
-export function deleteProduct(productId) {
-  return dispatch => {
+export function deleteProduct(bodyData) {
+  return (dispatch,getState) => {
     axios
-      .post(
-        "http://localhost:5000/product/delete",
-        {
-          productId: productId
-        },
-        { withCredentials: true }
-      )
+      .post("http://localhost:5000/product/delete", bodyData, {
+        withCredentials: true
+      })
       .then(function(response) {
         console.log(response);
-        if (response.data.type === "SUCCESS") {
-          dispatch(getProduct);
+        if (response.data.type === "SUCCESSFUL") {
+           getProduct(getState().supplier.currentSupplier)(dispatch);
         } else {
           dispatch({
             type: FAILED_TO_FETCH,
@@ -89,7 +82,6 @@ export function deleteProduct(productId) {
           });
         }
       });
-    // dispatch({ type: DELETE_PRODUCT, payload: { productId: productId } });
   };
 }
 
