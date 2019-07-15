@@ -295,11 +295,6 @@ function AutoSelect(props) {
           styles={selectStyles}
           inputId="react-select-single"
           TextFieldProps={{
-            label: props.importLabel,
-            InputLabelProps: {
-              htmlFor: "react-select-single",
-              shrink: true
-            },
             placeholder: "select your country"
           }}
           onBlur={handleBlurCountryChange}
