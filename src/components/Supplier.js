@@ -86,44 +86,75 @@ const StyledTypography = withStyles({
 })(Typography);
 class Supplier extends React.Component {
   state = {
-    importCountry: null,
-    countryOfOrigin: null,
+    supplierField: {
+      importCountry: null,
+      countryOfOrigin: null,
+      transactionId: null,
+      transactionDate: null,
+      billOfEntry: "",
+      billOfEntryDate: null,
+      supplierInvoice: "",
+      poReference: ""
+    },
     dateError: false,
-    transactionId: null,
-    transactionDate: null,
-    billOfEntry: "",
-    billOfEntryDate: null,
-    supplierInvoice: "",
-    poReference: "",
     errorFields: [],
     formSubmitSuccess: false
   };
   handleSelectValue = selectOption => {
-    this.setState({ [selectOption.name]: selectOption.value });
+    this.setState({
+      supplierField: {
+        ...this.state.supplierField,
+        [selectOption.name]: selectOption.value
+      }
+    });
   };
   // handle TextField value
   handleTextField = eve => {
-    this.setState({ [eve.target.name]: eve.target.value });
+    this.setState({
+      supplierField: {
+        ...this.state.supplierField,
+        [eve.target.name]: eve.target.value
+      }
+    });
   };
 
   // handle on submit event
   handleFormSubmit = eve => {
     eve.preventDefault();
-    let stateVal = this.state;
+    let stateVal = this.state.supplierField;
     let requiredFields = ["poReference", "transactionDate", "billOfEntryDate"];
-    requiredFields = requiredFields.filter(elem => !stateVal[elem]);
+    requiredFields = requiredFields.filter(elem => {
+      if (elem === "transactionDate" || elem === "billOfEntryDate") {
+        let date = stateVal[elem] && new Date(stateVal[elem]);
+        if (!date) return true;
+        if (date.toString().indexOf("invalid") !== -1 || !stateVal[elem]) {
+          return true;
+        }
+      } else {
+        if (!stateVal[elem]) {
+          return true;
+        } else if (!stateVal[elem].toString().trim()) {
+          return true;
+        }
+      }
+    });
     this.setState({ errorFields: requiredFields });
-    console.log(requiredFields);
+
+    // setTimeout
+    setTimeout(() => {
+      this.setState({ errorFields: [] });
+    }, 500);
     if (requiredFields.length === 0 && !stateVal.dateError) {
-      // remove unneccesary state property
-      delete stateVal.dateError;
-      delete stateVal.errorFields;
-      delete stateVal.formSubmitSuccess;
       this.props.submitSupplierData(stateVal, this.props.editMode);
     }
   };
   handleDateChange = (e, name) => {
-    this.setState({ [name]: e });
+    this.setState({
+      supplierField: {
+        ...this.state.supplierField,
+        [name]: e
+      }
+    });
     if (e.toString().indexOf("invalid") === -1) {
       this.setState({ dateError: false });
     }
@@ -139,14 +170,23 @@ class Supplier extends React.Component {
     if (editMode) {
       transactionIds = suppliers.map(elem => elem.transactionId);
       supplierIndex = transactionIds.indexOf(supplierToBeEdited);
-      this.setState(Object.assign({}, this.state, suppliers[supplierIndex]));
+      this.setState({
+        supplierField: Object.assign(
+          {},
+          this.state.supplierField,
+          suppliers[supplierIndex]
+        )
+      });
     }
+  };
+  componentWillUnmount = () => {
+    this.props.setValue({ editMode: false, supplierToBeEdited: "" });
   };
   changeRoute = () => {
     const { reRoute, history, setValue } = this.props;
     if (reRoute) {
       setTimeout(() => {
-        history.push("/");
+        history.push("/supplierlist");
         setValue({ formSubmitSuccess: false, reRoute: false });
       }, 2000);
     }
@@ -159,168 +199,159 @@ class Supplier extends React.Component {
       billOfEntry,
       supplierInvoice,
       poReference
-    } = this.state;
+    } = this.state.supplierField;
     const { classes } = this.props;
     return (
-      <Container className={classes.outerContainer} maxWidth="xl">
+      <form onSubmit={this.handleFormSubmit} className={classes.form}>
         {this.changeRoute()}
-        <form onSubmit={this.handleFormSubmit} className={classes.form}>
-          <Paper className={classes.root}>
-            <Grid container>
-              <StyledGrid item md={6}>
-                <StyledTypography variant="body1">
-                  Transaction id #
-                </StyledTypography>
-                <span>{transactionId}</span>
-              </StyledGrid>
-              <StyledGrid item md={6}>
-                <StyledTypography variant="body1">
-                  Transaction date:
-                </StyledTypography>
-                <MuiPickersUtilsProvider utils={DateFnsUtils}>
-                  <KeyboardDatePicker
-                    autoOk
-                    className={clsx(classes.textField, classes.lowZIndex)}
-                    variant="inline"
-                    inputVariant="outlined"
-                    label="select date"
-                    format="MM/dd/yyyy"
-                    value={transactionDate}
-                    error={
-                      this.state.errorFields.indexOf("transactionDate") !== -1
-                    }
-                    onError={this.handleError}
-                    onAccept={this.handleAccept}
-                    onChange={date =>
-                      this.handleDateChange(date, "transactionDate")
-                    }
-                  />
-                </MuiPickersUtilsProvider>
-              </StyledGrid>
-              <StyledGrid item md={6}>
-                <StyledTypography variant="body1">
-                  Importing countries
-                </StyledTypography>
-                <AutoSelect
-                  name="importCountry"
-                  importLabel="Importing countries"
-                  updateSelectValue={this.handleSelectValue}
-                  selectValue={this.state["importCountry"]}
+        <Paper className={classes.root}>
+          <Grid container>
+            <StyledGrid item xs={12} md={6}>
+              <StyledTypography variant="body1">
+                Transaction id #
+              </StyledTypography>
+              <span>{transactionId}</span>
+            </StyledGrid>
+            <StyledGrid item xs={12} md={6}>
+              <StyledTypography variant="body1">
+                Transaction date:
+              </StyledTypography>
+              <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                <KeyboardDatePicker
+                  autoOk
+                  className={clsx(classes.textField, classes.lowZIndex)}
+                  variant="inline"
+                  inputVariant="outlined"
+                  format="MM/dd/yyyy"
+                  value={transactionDate}
+                  error={
+                    this.state.errorFields.indexOf("transactionDate") !== -1
+                  }
+                  onError={this.handleError}
+                  onAccept={this.handleAccept}
+                  placeholder="select date"
+                  onChange={date =>
+                    this.handleDateChange(date, "transactionDate")
+                  }
                 />
-              </StyledGrid>
-              <StyledGrid item md={6}>
-                <StyledTypography variant="body1">
-                  Country of origin
-                </StyledTypography>
-                <AutoSelect
-                  name="countryOfOrigin"
-                  importLabel="country of origin"
-                  updateSelectValue={this.handleSelectValue}
-                  selectValue={this.state["countryOfOrigin"]}
-                />
-              </StyledGrid>
+              </MuiPickersUtilsProvider>
+            </StyledGrid>
+            <StyledGrid item xs={12} md={6}>
+              <StyledTypography variant="body1">
+                Importing countries
+              </StyledTypography>
+              <AutoSelect
+                name="importCountry"
+                updateSelectValue={this.handleSelectValue}
+                selectValue={this.state.supplierField["importCountry"]}
+              />
+            </StyledGrid>
+            <StyledGrid item xs={12} md={6}>
+              <StyledTypography variant="body1">
+                Country of origin
+              </StyledTypography>
+              <AutoSelect
+                name="countryOfOrigin"
+                updateSelectValue={this.handleSelectValue}
+                selectValue={this.state.supplierField["countryOfOrigin"]}
+              />
+            </StyledGrid>
 
-              <StyledGrid item xs={12} md={6}>
-                <StyledTypography variant="body1">
-                  Supplier invoice
-                </StyledTypography>
-                <TextField
-                  id="outlined-name"
-                  className={classes.textField}
-                  type="number"
-                  name="supplierInvoice"
-                  value={supplierInvoice}
-                  onChange={this.handleTextField}
-                  margin="normal"
-                  variant="outlined"
-                  placeholder="Supplier invoice"
+            <StyledGrid item xs={12} md={6}>
+              <StyledTypography variant="body1">
+                Supplier invoice
+              </StyledTypography>
+              <TextField
+                id="outlined-name"
+                className={classes.textField}
+                type="number"
+                name="supplierInvoice"
+                value={supplierInvoice}
+                onChange={this.handleTextField}
+                margin="normal"
+                variant="outlined"
+                placeholder="Supplier invoice"
+              />
+            </StyledGrid>
+            <StyledGrid item xs={12} md={6}>
+              <StyledTypography variant="body1">
+                BillofEntryDate
+              </StyledTypography>
+              <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                <KeyboardDatePicker
+                  autoOk
+                  variant="inline"
+                  inputVariant="outlined"
+                  format="MM/dd/yyyy"
+                  value={billOfEntryDate}
+                  error={
+                    this.state.errorFields.indexOf("billOfEntryDate") !== -1
+                  }
+                  placeholder="select date"
+                  className={clsx(classes.textField, classes.lowZIndex)}
+                  onError={this.handleError}
+                  // InputAdornmentProps={{ position: "start" }}
+                  onAccept={this.handleAccept}
+                  onChange={date =>
+                    this.handleDateChange(date, "billOfEntryDate")
+                  }
                 />
-              </StyledGrid>
-              <StyledGrid item md={6}>
-                <StyledTypography variant="body1">
-                  BillofEntryDate
-                </StyledTypography>
-                <MuiPickersUtilsProvider utils={DateFnsUtils}>
-                  <KeyboardDatePicker
-                    autoOk
-                    variant="inline"
-                    inputVariant="outlined"
-                    label="select date"
-                    format="MM/dd/yyyy"
-                    value={billOfEntryDate}
-                    error={
-                      this.state.errorFields.indexOf("billOfEntryDate") !== -1
-                    }
-                    className={clsx(classes.textField, classes.lowZIndex)}
-                    onError={this.handleError}
-                    // InputAdornmentProps={{ position: "start" }}
-                    onAccept={this.handleAccept}
-                    onChange={date =>
-                      this.handleDateChange(date, "billOfEntryDate")
-                    }
-                  />
-                </MuiPickersUtilsProvider>
-              </StyledGrid>
-              <StyledGrid item md={6} direction="coloumn">
-                <StyledTypography variant="body1">
-                  po reference
-                </StyledTypography>
-                <TextField
-                  error={this.state.errorFields.indexOf("poReference") !== -1}
-                  name="poReference"
-                  label="po reference"
-                  // required
-                  className={classes.textField}
-                  value={poReference}
-                  type="text"
-                  onChange={this.handleTextField}
-                  margin="normal"
-                  variant="outlined"
-                  placeholder="PO reference text"
-                />
-              </StyledGrid>
-              <StyledGrid item md={6}>
-                <StyledTypography variant="body1">
-                  Bill of entry
-                </StyledTypography>
-                <TextField
-                  name="billOfEntry"
-                  type="text"
-                  value={billOfEntry}
-                  className={classes.textField}
-                  onChange={this.handleTextField}
-                  margin="normal"
-                  variant="outlined"
-                  placeholder="bill of entry text"
-                />
-              </StyledGrid>
-              <StyledGrid container xs={12}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  className={classes.buttons}
-                  type="submit"
-                >
-                  {this.props.editMode ? "Submit Edit" : "Submit"}
-                </Button>
-                <Button
-                  component={Link}
-                  to="/"
-                  variant="contained"
-                  className={classes.buttons}
-                >
-                  {this.props.editMode ? "Cancel Edit" : "Cancel"}
-                </Button>
-              </StyledGrid>
-            </Grid>
-            <SnackbarComponent
-              formSubmitSuccess={this.props.formSubmitSuccess}
-              closeSnackBar={this.props.closeSnackBar}
-              variant="success"
-            />
-          </Paper>
-        </form>
-      </Container>
+              </MuiPickersUtilsProvider>
+            </StyledGrid>
+            <StyledGrid item xs={12} md={6} direction="coloumn">
+              <StyledTypography variant="body1">po reference</StyledTypography>
+              <TextField
+                error={this.state.errorFields.indexOf("poReference") !== -1}
+                name="poReference"
+                // required
+                className={classes.textField}
+                value={poReference}
+                type="text"
+                onChange={this.handleTextField}
+                margin="normal"
+                variant="outlined"
+                placeholder="PO reference text"
+              />
+            </StyledGrid>
+            <StyledGrid item xs={12} md={6}>
+              <StyledTypography variant="body1">Bill of entry</StyledTypography>
+              <TextField
+                name="billOfEntry"
+                type="text"
+                value={billOfEntry}
+                className={classes.textField}
+                onChange={this.handleTextField}
+                margin="normal"
+                variant="outlined"
+                placeholder="bill of entry text"
+              />
+            </StyledGrid>
+            <StyledGrid container xs={12}>
+              <Button
+                variant="contained"
+                color="primary"
+                className={classes.buttons}
+                type="submit"
+              >
+                {this.props.editMode ? "Submit Edit" : "Submit"}
+              </Button>
+              <Button
+                variant="contained"
+                className={classes.buttons}
+                component={Link}
+                to="/"
+              >
+                {this.props.editMode ? "Cancel Edit" : "Cancel"}
+              </Button>
+            </StyledGrid>
+          </Grid>
+          <SnackbarComponent
+            formSubmitSuccess={this.props.formSubmitSuccess}
+            closeSnackBar={this.props.closeSnackBar}
+            variant="success"
+          />
+        </Paper>
+      </form>
     );
   }
 }
