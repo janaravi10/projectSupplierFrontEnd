@@ -1,17 +1,15 @@
 import {
-  SHOW_POPUP,
-  SHOW_ALERT,
   GET_PRODUCT,
-  FAILED_TO_FETCH,
   SET_VALUE,
-  CLEAR_NOTIFICATION,
-  SHOW_NOTIFICATION
+  ADD_INLINE_PRODUCT,
+  CLEAR_INLINE_PRODUCT,
+  CHECK_INLINE_PRODUCT
 } from "./actionTypes";
 import axios from "axios";
 // remove question
 export function addData(productData, isEdit) {
   return (dispatch, getState) => {
-    console.log("comming");
+    console.log(isEdit);
     let url = "http://localhost:5000/product/";
     url += isEdit ? "edit" : "add";
     axios
@@ -21,15 +19,9 @@ export function addData(productData, isEdit) {
       .then(function(res) {
         if (res.data.type === "SUCCESSFUL") {
           getProduct(getState().supplier.currentSupplier)(dispatch);
-          showPopup({ showPopup: false, beingEdited: false })(dispatch);
+
           setProductValue({ editClicked: false })(dispatch);
         } else {
-          console.log(res);
-          showNotification({
-            show: true,
-            className: "red",
-            message: res.data.message
-          })(dispatch);
         }
       });
   };
@@ -43,24 +35,9 @@ export function setProductValue(valueToSetInRedux) {
     });
   };
 }
-export function showPopup(config) {
-  return dispatch => {
-    dispatch({ type: SHOW_POPUP, payload: config });
-  };
-}
-
-export function showAlert(alertConfig) {
-  return dispatch => {
-    dispatch({ type: SHOW_ALERT, payload: alertConfig });
-    // hiding popup after 1second
-    setTimeout(() => {
-      dispatch({ type: SHOW_ALERT, payload: { showAlert: false } });
-    }, 1000);
-  };
-}
 
 export function deleteProduct(bodyData) {
-  return (dispatch,getState) => {
+  return (dispatch, getState) => {
     axios
       .post("http://localhost:5000/product/delete", bodyData, {
         withCredentials: true
@@ -68,55 +45,23 @@ export function deleteProduct(bodyData) {
       .then(function(response) {
         console.log(response);
         if (response.data.type === "SUCCESSFUL") {
-           getProduct(getState().supplier.currentSupplier)(dispatch);
+          getProduct(getState().supplier.currentSupplier)(dispatch);
         } else {
-          dispatch({
-            type: FAILED_TO_FETCH,
-            payload: {
-              notification: {
-                show: true,
-                className: "red",
-                message: response.data.message
-              }
-            }
-          });
         }
       });
   };
 }
 
-export function editProduct(productId) {
-  return dispatch => {
-    dispatch({
-      type: SHOW_POPUP,
-      payload: { productId: productId, showPopup: true, beingEdited: true }
-    });
-  };
+export function addInlineProduct() {
+  return dispatch => dispatch({ type: ADD_INLINE_PRODUCT });
+}
+export function clearInlineProduct() {
+  return dispatch => dispatch({ type: CLEAR_INLINE_PRODUCT });
+}
+export function checkInlineProduct() {
+  return dispatch => dispatch({ type: CHECK_INLINE_PRODUCT });
 }
 
-// clear notification
-export function clearNotification() {
-  return dispatch => {
-    dispatch({
-      type: CLEAR_NOTIFICATION,
-      payload: {
-        notification: {}
-      }
-    });
-  };
-}
-
-// clear notification
-export function showNotification(notificationOption) {
-  return dispatch => {
-    dispatch({
-      type: SHOW_NOTIFICATION,
-      payload: {
-        notification: notificationOption
-      }
-    });
-  };
-}
 export function getProduct(supplierId) {
   return dispatch => {
     axios
@@ -130,28 +75,11 @@ export function getProduct(supplierId) {
             payload: { product: res.data.response }
           });
         } else {
-          showNotification({
-            message: res.data.message,
-            show: true,
-            className: "red"
-          })(dispatch);
-          // clearing notification after some second
-          setTimeout(() => {
-            clearNotification()(dispatch);
-          }, 1000);
+
         }
       })
       .catch(function(err) {
-        showNotification({
-          message: "Something went wrong!",
-          show: true,
-          className: "red"
-        })(dispatch);
 
-        // clearing notification after some second
-        setTimeout(() => {
-          clearNotification()(dispatch);
-        }, 1000);
       });
   };
 }
