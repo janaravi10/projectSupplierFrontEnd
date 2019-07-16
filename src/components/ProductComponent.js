@@ -1,11 +1,9 @@
 import React, { Component } from "react";
-import "../css/popup.css";
 import { connect } from "react-redux";
 import {
-  showPopup,
   addData,
-  showAlert,
-  getProduct
+  getProduct,
+  addInlineProduct
 } from "../actions/addDetail";
 import TextField from "@material-ui/core/TextField";
 import MenuItem from "@material-ui/core/MenuItem";
@@ -17,7 +15,7 @@ import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
 import OutlinedInput from "@material-ui/core/OutlinedInput";
 import { withStyles } from "@material-ui/styles";
-import { Container, Typography } from "@material-ui/core";
+import { Typography } from "@material-ui/core";
 import lightBlue from "@material-ui/core/colors/lightBlue";
 import { Create, Delete, Done, Clear } from "@material-ui/icons";
 import IconButton from "@material-ui/core/IconButton";
@@ -27,8 +25,12 @@ import TableCell from "@material-ui/core/TableCell";
 import { withRouter } from "react-router-dom";
 import { setValue } from "../actions/supplierAction";
 import Divider from "@material-ui/core/Divider";
-import { setProductValue, deleteProduct } from "../actions/addDetail";
-import { isThisSecond } from "date-fns";
+import {
+  setProductValue,
+  deleteProduct,
+  clearInlineProduct,
+  checkInlineProduct
+} from "../actions/addDetail";
 const styles = theme => ({
   container: {
     height: "100vh",
@@ -65,8 +67,7 @@ class ProductComponent extends Component {
       packSize: "",
       packUom: "KG",
       unitPrice: 0,
-      totalPrice: 0,
-      requiredFields: []
+      totalPrice: 0
     },
     addProduct: {
       productName: "",
@@ -75,22 +76,24 @@ class ProductComponent extends Component {
       packSize: "",
       packUom: "KG",
       unitPrice: "",
-      totalPrice: "",
-      requiredFields: []
+      totalPrice: ""
     },
     addProductRequiredFields: [],
     requiredFields: [],
     showError: false
   };
   handleChange = (addNew, e) => {
-    const elem = e.target,
+    let elem = e.target,
       propName = addNew ? "addProduct" : "product";
+    // simple condition if the addProduct is for inline
+    propName =
+      this.state.productId === "ADD_INLINE_PRODUCT" ? "product" : "product";
     // If the element input being changed
     // is itemqty or unitprice then change the total price
     if (elem.name === "itemQty" || elem.name === "unitPrice") {
       let anotherUnit = elem.name === "itemQty" ? "unitPrice" : "itemQty";
       let elemValue =
-        elem.name === "unitPrice" ? Number(elem.value).toFixed(2) : elem.value;
+        elem.name === "unitPrice"||"itemQty" ? Number(elem.value).toFixed(2) : elem.value;
       this.setState({
         [propName]: {
           ...this.state[propName],
@@ -111,10 +114,11 @@ class ProductComponent extends Component {
   };
   // showpoup
   popupHide = addNew => {
-    let propName = addNew ? "addProduct" : "product",
-      { showPopup, setProductValue } = this.props;
-    addNew && showPopup({ showPopup: false, beingEdited: false });
-    addNew || setProductValue({ editClicked: false });
+    let propName = "product",
+      { setProductValue, clearInlineProduct } = this.props;
+
+    setProductValue({ editClicked: false });
+    addNew && clearInlineProduct();
     this.setState({
       [propName]: {
         productName: "",
@@ -143,10 +147,9 @@ class ProductComponent extends Component {
   // save data into the redux store
   saveData = (addNew, eve) => {
     eve.preventDefault();
-    let propName = addNew ? "addProduct" : "product",
-      fieldPropName = addNew ? "addProductRequiredFields" : "requiredFields",
+    let propName = "product",
       data = this.state[propName],
-      { showAlert, addData, editClicked, supplierId } = this.props,
+      { addData, supplierId } = this.props,
       requiredFields = [
         "productName",
         "itemQty",
@@ -168,15 +171,17 @@ class ProductComponent extends Component {
           return true;
         } else if (data[elem].toString().trim() === "") {
           return true;
+        } else {
+          return false;
         }
       } else {
-        return !data[elem] || data[elem] == false;
+        return !data[elem];
       }
     });
     if (requiredFields.length) {
       this.setState({
         [propName]: { ...this.state[propName] },
-        [fieldPropName]: requiredFields
+        ["requiredFields"]: requiredFields
       });
       // clearing the required fields
       setTimeout(() => {
@@ -184,7 +189,7 @@ class ProductComponent extends Component {
           [propName]: {
             ...this.state[propName]
           },
-          [fieldPropName]: []
+          ["requiredFields"]: []
         });
       }, 500);
     } else {
@@ -195,190 +200,182 @@ class ProductComponent extends Component {
             supplierId: supplierId
           }
         },
-        editClicked
+        this.state.productId === "ADD_INLINE_PRODUCT" ? false : true
       );
       this.clearForm(propName);
     }
   };
-  // show span elment with the error message
-  showAlertElem = () => {
-    return this.props.showAlertState ? (
-      <span className="alert">
-        {this.props.alertMsg.join(" ") + " Missing "}
-      </span>
-    ) : null;
-  };
   //================== RENDER ROW ==============//
-  renderDialog = () => {
-    const {
-        productName,
-        itemQty,
-        uom,
-        packSize,
-        packUom,
-        unitPrice,
-        totalPrice
-      } = this.state.addProduct,
-      classes = this.props.classes,
-      boundedHandleChange = this.handleChange.bind(this, true),
-      { addProductRequiredFields } = this.state;
-    return (
-      <StyledDialog
-        fullWidth={true}
-        maxWidth="sm"
-        open={this.props.showPopupState}
-      >
-        <form onSubmit={this.saveData.bind(this, true)}>
-          <Grid container>
-            <Grid item xs={12} md={6}>
-              <Typography variant="subtitle2">Item name</Typography>
-              <TextField
-                margin="dense"
-                variant="outlined"
-                name="productName"
-                type="text"
-                onChange={boundedHandleChange}
-                value={productName}
-                error={
-                  addProductRequiredFields.indexOf("productName") === -1
-                    ? false
-                    : true
-                }
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Typography variant="subtitle2">Quantity</Typography>
-              <TextField
-                margin="dense"
-                variant="outlined"
-                name="itemQty"
-                type="number"
-                onChange={boundedHandleChange}
-                value={itemQty}
-                error={
-                  addProductRequiredFields.indexOf("itemQty") === -1
-                    ? false
-                    : true
-                }
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Typography variant="subtitle2">UOM</Typography>
-              <FormControl variant="outlined">
-                <Select
-                  value={uom}
-                  onChange={boundedHandleChange}
-                  input={<OutlinedInput name="uom" />}
-                  error={
-                    addProductRequiredFields.indexOf("uom") === -1
-                      ? false
-                      : true
-                  }
-                >
-                  <MenuItem value="KG">Kg</MenuItem>
-                  <MenuItem value="LTR">Ltr</MenuItem>
-                  <MenuItem value="LBS">lbs</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Typography variant="subtitle2">pack size</Typography>
-              <TextField
-                margin="dense"
-                variant="outlined"
-                name="packSize"
-                type="number"
-                onChange={boundedHandleChange}
-                value={packSize}
-                error={
-                  addProductRequiredFields.indexOf("packSize") === -1
-                    ? false
-                    : true
-                }
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Typography variant="subtitle2">Pack UOM</Typography>
-              <FormControl variant="outlined">
-                <Select
-                  value={packUom}
-                  onChange={boundedHandleChange}
-                  input={<OutlinedInput name="packUom" />}
-                  error={
-                    addProductRequiredFields.indexOf("packUom") === -1
-                      ? false
-                      : true
-                  }
-                >
-                  <MenuItem value="KG">Kg</MenuItem>
-                  <MenuItem value="LTR">Ltr</MenuItem>
-                  <MenuItem value="LBS">lbs</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Typography variant="subtitle2">unit price</Typography>
-              <TextField
-                margin="dense"
-                variant="outlined"
-                name="unitPrice"
-                type="number"
-                onChange={boundedHandleChange}
-                value={
-                  (unitPrice + "").indexOf(".") !== -1
-                    ? unitPrice
-                    : unitPrice + ".00"
-                }
-                error={
-                  addProductRequiredFields.indexOf("unitPrice") === -1
-                    ? false
-                    : true
-                }
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Typography variant="subtitle2">total price</Typography>
-              <TextField
-                margin="dense"
-                variant="outlined"
-                name="totalPrice"
-                type="number"
-                onChange={boundedHandleChange}
-                // disabled
-                value={
-                  (itemQty * unitPrice + "").indexOf(".") === -1
-                    ? itemQty * unitPrice + ".00"
-                    : itemQty * unitPrice
-                }
-                error={
-                  addProductRequiredFields.indexOf("totalPrice") === -1
-                    ? false
-                    : true
-                }
-              />
-            </Grid>
-            <Grid item xs={12} className={classes.gridMargin}>
-              <Button
-                type="submit"
-                // onClick={this.saveData.bind(this, true)}
-                variant="contained"
-                color="primary"
-                className={classes.btn}
-              >
-                save
-              </Button>
-              <Button
-                onClick={this.popupHide.bind(this, true)}
-                className={classes.btn}
-              >
-                cancel
-              </Button>
-            </Grid>
-          </Grid>
-        </form>
-      </StyledDialog>
-    );
-  };
+  // renderDialog = () => {
+  //   const {
+  //       productName,
+  //       itemQty,
+  //       uom,
+  //       packSize,
+  //       packUom,
+  //       unitPrice,
+  //       totalPrice
+  //     } = this.state.addProduct,
+  //     classes = this.props.classes,
+  //     boundedHandleChange = this.handleChange.bind(this, true),
+  //     { addProductRequiredFields } = this.state;
+  //   return (
+  //     <StyledDialog
+  //       fullWidth={true}
+  //       maxWidth="sm"
+  //       open={this.props.showPopupState}
+  //     >
+  //       <form onSubmit={this.saveData.bind(this, true)}>
+  //         <Grid container>
+  //           <Grid item xs={12} md={6}>
+  //             <Typography variant="subtitle2">Item name</Typography>
+  //             <TextField
+  //               margin="dense"
+  //               variant="outlined"
+  //               name="productName"
+  //               type="text"
+  //               onChange={boundedHandleChange}
+  //               value={productName}
+  //               error={
+  //                 addProductRequiredFields.indexOf("productName") === -1
+  //                   ? false
+  //                   : true
+  //               }
+  //             />
+  //           </Grid>
+  //           <Grid item xs={12} sm={6}>
+  //             <Typography variant="subtitle2">Quantity</Typography>
+  //             <TextField
+  //               margin="dense"
+  //               variant="outlined"
+  //               name="itemQty"
+  //               type="number"
+  //               onChange={boundedHandleChange}
+  //               value={itemQty}
+  //               error={
+  //                 addProductRequiredFields.indexOf("itemQty") === -1
+  //                   ? false
+  //                   : true
+  //               }
+  //             />
+  //           </Grid>
+  //           <Grid item xs={12} md={6}>
+  //             <Typography variant="subtitle2">UOM</Typography>
+  //             <FormControl variant="outlined">
+  //               <Select
+  //                 value={uom}
+  //                 onChange={boundedHandleChange}
+  //                 input={<OutlinedInput name="uom" />}
+  //                 error={
+  //                   addProductRequiredFields.indexOf("uom") === -1
+  //                     ? false
+  //                     : true
+  //                 }
+  //               >
+  //                 <MenuItem value="KG">Kg</MenuItem>
+  //                 <MenuItem value="LTR">Ltr</MenuItem>
+  //                 <MenuItem value="LBS">lbs</MenuItem>
+  //               </Select>
+  //             </FormControl>
+  //           </Grid>
+  //           <Grid item xs={12} md={6}>
+  //             <Typography variant="subtitle2">pack size</Typography>
+  //             <TextField
+  //               margin="dense"
+  //               variant="outlined"
+  //               name="packSize"
+  //               type="number"
+  //               onChange={boundedHandleChange}
+  //               value={packSize}
+  //               error={
+  //                 addProductRequiredFields.indexOf("packSize") === -1
+  //                   ? false
+  //                   : true
+  //               }
+  //             />
+  //           </Grid>
+  //           <Grid item xs={12} md={6}>
+  //             <Typography variant="subtitle2">Pack UOM</Typography>
+  //             <FormControl variant="outlined">
+  //               <Select
+  //                 value={packUom}
+  //                 onChange={boundedHandleChange}
+  //                 input={<OutlinedInput name="packUom" />}
+  //                 error={
+  //                   addProductRequiredFields.indexOf("packUom") === -1
+  //                     ? false
+  //                     : true
+  //                 }
+  //               >
+  //                 <MenuItem value="KG">Kg</MenuItem>
+  //                 <MenuItem value="LTR">Ltr</MenuItem>
+  //                 <MenuItem value="LBS">lbs</MenuItem>
+  //               </Select>
+  //             </FormControl>
+  //           </Grid>
+  //           <Grid item xs={12} md={6}>
+  //             <Typography variant="subtitle2">unit price</Typography>
+  //             <TextField
+  //               margin="dense"
+  //               variant="outlined"
+  //               name="unitPrice"
+  //               type="number"
+  //               onChange={boundedHandleChange}
+  //               value={
+  //                 (unitPrice + "").indexOf(".") !== -1
+  //                   ? unitPrice
+  //                   : unitPrice + ".00"
+  //               }
+  //               error={
+  //                 addProductRequiredFields.indexOf("unitPrice") === -1
+  //                   ? false
+  //                   : true
+  //               }
+  //             />
+  //           </Grid>
+  //           <Grid item xs={12} md={6}>
+  //             <Typography variant="subtitle2">total price</Typography>
+  //             <TextField
+  //               margin="dense"
+  //               variant="outlined"
+  //               name="totalPrice"
+  //               type="number"
+  //               onChange={boundedHandleChange}
+  //               // disabled
+  //               value={
+  //                 (itemQty * unitPrice + "").indexOf(".") === -1
+  //                   ? itemQty * unitPrice + ".00"
+  //                   : itemQty * unitPrice
+  //               }
+  //               error={
+  //                 addProductRequiredFields.indexOf("totalPrice") === -1
+  //                   ? false
+  //                   : true
+  //               }
+  //             />
+  //           </Grid>
+  //           <Grid item xs={12} className={classes.gridMargin}>
+  //             <Button
+  //               type="submit"
+  //               // onClick={this.saveData.bind(this, true)}
+  //               variant="contained"
+  //               color="primary"
+  //               className={classes.btn}
+  //             >
+  //               save
+  //             </Button>
+  //             <Button
+  //               onClick={this.popupHide.bind(this, true)}
+  //               className={classes.btn}
+  //             >
+  //               cancel
+  //             </Button>
+  //           </Grid>
+  //         </Grid>
+  //       </form>
+  //     </StyledDialog>
+  //   );
+  // };
   renderRow = rowData => {
     var data = rowData.data;
     if (this.props.editClicked === true && data._id === this.state.productId) {
@@ -410,7 +407,6 @@ class ProductComponent extends Component {
             <TextField
               margin="dense"
               value={itemQty}
-              //   value={product.itemQty}
               name="itemQty"
               type="number"
               onChange={this.handleChange.bind(this, false)}
@@ -441,7 +437,6 @@ class ProductComponent extends Component {
           </TableCell>
           <TableCell>
             <Select
-              //   value={product.packUom}
               name="packUom"
               value={packUom}
               onChange={this.handleChange.bind(this, false)}
@@ -460,7 +455,6 @@ class ProductComponent extends Component {
                   ? unitPrice
                   : unitPrice + ".00"
               }
-              //   value={product.unitPrice}
               name="unitPrice"
               type="number"
               onChange={this.handleChange.bind(this, false)}
@@ -475,7 +469,6 @@ class ProductComponent extends Component {
                   ? itemQty * unitPrice + ".00"
                   : itemQty * unitPrice
               }
-              //   value={product.totalPrice}
               name="totalPrice"
               type="number"
               disabled
@@ -489,10 +482,20 @@ class ProductComponent extends Component {
               flexDirection: "row"
             }}
           >
-            <IconButton onClick={this.saveData.bind(this, false)}>
+            <IconButton
+              onClick={this.saveData.bind(
+                this,
+                data._id === "ADD_INLINE_PRODUCT" ? true : false
+              )}
+            >
               <Done />
             </IconButton>
-            <IconButton onClick={this.popupHide.bind(this, false)}>
+            <IconButton
+              onClick={this.popupHide.bind(
+                this,
+                data._id === "ADD_INLINE_PRODUCT" ? true : false
+              )}
+            >
               <Clear />
             </IconButton>
           </TableCell>
@@ -529,6 +532,7 @@ class ProductComponent extends Component {
                 let productId = eve.currentTarget.getAttribute(
                   "data-productid"
                 );
+                this.props.checkInlineProduct();
                 this.props.setProductValue({ editClicked: true });
                 this.setState({
                   productId: productId,
@@ -671,82 +675,91 @@ class ProductComponent extends Component {
     getProduct(location.state.currentSupplier);
   };
   render() {
-    const { classes } = this.props;
     return (
-        <Grid container xs={12} md={10} style={{ margin: "auto" ,textAlign: "center"}}> {this.renderDialog()}
-          <Grid item xs={12}>
-            {this.renderSupplier()}
-          </Grid>
-          <Grid item xs={12} style={{ marginTop: "10px" }}>
-            <MaterialTable
-              title="Supplier products"
-              columns={[
-                { title: "S.NO", field: "sno" },
-                { title: "Item", field: "productName" },
-                { title: "Quantity", field: "itemQty" },
-                { title: "UOM", field: "uom" },
-                { title: "Pack Size", field: "packSize" },
-                { title: "Pack UOM", field: "packUom" },
-                { title: "Unit price", field: "unitPrice" },
-                {
-                  title: "Total Price",
-                  field: "totalPrice"
-                }
-              ]}
-              data={this.props.product}
-              actions={[
-                {
-                  icon: Create,
-                  tooltip: "edit product"
-                },
-                {
-                  icon: Delete,
-                  tooltip: "edit product"
-                }
-              ]}
-              options={{
-                search: false,
-                paging: false,
-                actionsColumnIndex: -1
-              }}
-              components={{
-                Row: this.renderRow,
-                Toolbar: () => {
-                  return (
-                    <Grid container xs={12}>
-                      <Grid xs={6}>
-                        <Typography
-                          variant="h5"
-                          style={{ textAlign: "left", margin: 10 }}
-                        >
-                          Supplier product
-                        </Typography>
-                      </Grid>
-                      <Grid xs={6}>
-                        <Button
-                          variant="contained"
-                          color="primary"
-                          style={{
-                            float: "right",
-                            margin: 10
-                          }}
-                          onClick={() => {
-                            this.props.showPopup({
-                              showPopup: true,
-                              beingEdited: false
-                            });
-                          }}
-                        >
-                          Add new
-                        </Button>
-                      </Grid>
-                    </Grid>
-                  );
-                }
-              }}
-            />
-          </Grid>
+      <Grid
+        container
+        xs={12}
+        md={10}
+        style={{ margin: "auto", textAlign: "center" }}
+      >
+        {/* {this.renderDialog()} */}
+        <Grid item xs={12}>
+          {this.renderSupplier()}
         </Grid>
+        <Grid item xs={12} style={{ marginTop: "10px" }}>
+          <MaterialTable
+            title="Supplier products"
+            columns={[
+              { title: "S.NO", field: "sno" },
+              { title: "Item", field: "productName" },
+              { title: "Quantity", field: "itemQty" },
+              { title: "UOM", field: "uom" },
+              { title: "Pack Size", field: "packSize" },
+              { title: "Pack UOM", field: "packUom" },
+              { title: "Unit price", field: "unitPrice" },
+              {
+                title: "Total Price",
+                field: "totalPrice"
+              }
+            ]}
+            data={this.props.product}
+            actions={[
+              {
+                icon: Create,
+                tooltip: "edit product"
+              },
+              {
+                icon: Delete,
+                tooltip: "edit product"
+              }
+            ]}
+            options={{
+              search: false,
+              paging: false,
+              actionsColumnIndex: -1
+            }}
+            components={{
+              Row: this.renderRow,
+              Toolbar: () => {
+                return (
+                  <Grid container xs={12}>
+                    <Grid xs={6}>
+                      <Typography
+                        variant="h5"
+                        style={{ textAlign: "left", margin: 10 }}
+                      >
+                        Supplier product
+                      </Typography>
+                    </Grid>
+                    <Grid xs={6}>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        style={{
+                          float: "right",
+                          margin: 10
+                        }}
+                        onClick={() => {
+                          this.setState({
+                            product: Object.assign({}, this.state.product),
+                            productId: "ADD_INLINE_PRODUCT"
+                          });
+                          this.props.addInlineProduct();
+                          this.props.setProductValue({
+                            editClicked: true
+                          });
+                        }}
+                      >
+                        Add new
+                      </Button>
+                    </Grid>
+                  </Grid>
+                );
+              }
+            }}
+          />
+        </Grid>
+      </Grid>
     );
   }
 }
@@ -760,13 +773,14 @@ const mapStateToProps = state => ({
   editClicked: state.product.editClicked
 });
 const mapDispatchToProps = {
-  showPopup,
   addData,
-  showAlert,
   getProduct,
   setValue,
   setProductValue,
-  deleteProduct
+  deleteProduct,
+  addInlineProduct,
+  clearInlineProduct,
+  checkInlineProduct
 };
 
 export default withRouter(
