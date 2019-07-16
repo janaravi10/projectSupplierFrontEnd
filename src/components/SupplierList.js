@@ -1,9 +1,7 @@
 import React, { Component } from "react";
 import Paper from "@material-ui/core/Paper";
-import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
 import { withStyles } from "@material-ui/styles";
-import Container from "@material-ui/core/Container";
 import lightBlue from "@material-ui/core/colors/lightBlue";
 import { withRouter, Link } from "react-router-dom";
 import Grid from "@material-ui/core/Grid";
