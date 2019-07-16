@@ -1,7 +1,7 @@
 import React from "react";
 import { withStyles } from "@material-ui/styles";
 import { KeyboardDatePicker } from "@material-ui/pickers";
-import DateFnsUtils from "@date-io/date-fns"; // choose your lib
+import DateFnsUtils from "@date-io/date-fns";
 import { MuiPickersUtilsProvider } from "@material-ui/pickers";
 import AutoSelect from "./AutoSelect";
 import Button from "@material-ui/core/Button";
@@ -20,7 +20,6 @@ import {
 } from "../actions/supplierAction";
 import { withRouter, Link } from "react-router-dom";
 import { connect } from "react-redux";
-import { Container } from "@material-ui/core";
 const styles = theme => {
   return {
     outerContainer: {
@@ -96,7 +95,7 @@ class Supplier extends React.Component {
       supplierInvoice: "",
       poReference: ""
     },
-    dateError: false,
+    dateError: {},
     errorFields: [],
     formSubmitSuccess: false
   };
@@ -124,10 +123,12 @@ class Supplier extends React.Component {
     let stateVal = this.state.supplierField;
     let requiredFields = ["poReference", "transactionDate", "billOfEntryDate"];
     requiredFields = requiredFields.filter(elem => {
+      let dayToDisable = [6];
       if (elem === "transactionDate" || elem === "billOfEntryDate") {
         let date = stateVal[elem] && new Date(stateVal[elem]);
         if (!date) return true;
-        if (date.toString().indexOf("invalid") !== -1 || !stateVal[elem]) {
+        if (dayToDisable.indexOf(date.getDay()) !== -1) return true;
+        if (date.toString().indexOf("Invalid") !== -1 || !stateVal[elem]) {
           return true;
         }
       } else {
@@ -139,30 +140,38 @@ class Supplier extends React.Component {
       }
     });
     this.setState({ errorFields: requiredFields });
-
     // setTimeout
     setTimeout(() => {
       this.setState({ errorFields: [] });
     }, 500);
-    if (requiredFields.length === 0 && !stateVal.dateError) {
+    let dateError = Object.keys(this.state.dateError).reduce(
+      e => this.state.dateError[e]
+    ,"");
+    if (!requiredFields.length && !dateError.length) {
       this.props.submitSupplierData(stateVal, this.props.editMode);
+    } else {
     }
   };
   handleDateChange = (e, name) => {
+    let stateVal = this.state;
     this.setState({
       supplierField: {
         ...this.state.supplierField,
         [name]: e
       }
     });
-    if (e.toString().indexOf("invalid") === -1) {
-      this.setState({ dateError: false });
+    if (!e) {
+      this.setState({ dateError: { ...stateVal.dateError, [name]: true } });
+      return;
+    } else {
+      if (e.toString().indexOf("Invalid") === -1) {
+        this.setState({ dateError: { ...stateVal.dateError, [name]: false } });
+      } else {
+        this.setState({ dateError: { ...stateVal.dateError, [name]: true } });
+      }
     }
   };
-  //
-  handleError = e => {
-    this.setState({ dateError: true });
-  };
+
   componentDidMount = () => {
     let { editMode, supplierToBeEdited, suppliers } = this.props,
       supplierIndex,
@@ -179,6 +188,7 @@ class Supplier extends React.Component {
       });
     }
   };
+
   componentWillUnmount = () => {
     this.props.setValue({ editMode: false, supplierToBeEdited: "" });
   };
@@ -220,15 +230,15 @@ class Supplier extends React.Component {
                 <KeyboardDatePicker
                   autoOk
                   className={clsx(classes.textField, classes.lowZIndex)}
-                  variant="inline"
+                  variant="dialog"
                   inputVariant="outlined"
-                  format="MM/dd/yyyy"
+                  format="dd/MM/yyyy"
+                  shouldDisableDate={date => date.getDay() === 6}
                   value={transactionDate}
                   error={
-                    this.state.errorFields.indexOf("transactionDate") !== -1
+                    this.state.errorFields.indexOf("transactionDate") !== -1 ||
+                    this.state.dateError.transactionDate
                   }
-                  onError={this.handleError}
-                  onAccept={this.handleAccept}
                   placeholder="select date"
                   onChange={date =>
                     this.handleDateChange(date, "transactionDate")
@@ -275,26 +285,25 @@ class Supplier extends React.Component {
             </StyledGrid>
             <StyledGrid item xs={12} md={6}>
               <StyledTypography variant="body1">
-                BillofEntryDate
+                Bill of entry date
               </StyledTypography>
               <MuiPickersUtilsProvider utils={DateFnsUtils}>
                 <KeyboardDatePicker
                   autoOk
-                  variant="inline"
+                  variant="dialog"
                   inputVariant="outlined"
-                  format="MM/dd/yyyy"
+                  format="dd/MM/yyyy"
                   value={billOfEntryDate}
                   error={
-                    this.state.errorFields.indexOf("billOfEntryDate") !== -1
+                    this.state.errorFields.indexOf("billOfEntryDate") !== -1 ||
+                    this.state.dateError.billOfEntryDate
                   }
                   placeholder="select date"
                   className={clsx(classes.textField, classes.lowZIndex)}
-                  onError={this.handleError}
-                  // InputAdornmentProps={{ position: "start" }}
-                  onAccept={this.handleAccept}
                   onChange={date =>
                     this.handleDateChange(date, "billOfEntryDate")
                   }
+                  shouldDisableDate={date => date.getDay() === 6}
                 />
               </MuiPickersUtilsProvider>
             </StyledGrid>
