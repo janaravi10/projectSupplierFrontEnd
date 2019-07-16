@@ -1,21 +1,15 @@
 import {
   ADD_DETAIL,
-  SHOW_POPUP,
-  SHOW_ALERT,
   DELETE_PRODUCT,
   GET_PRODUCT,
-  FAILED_TO_FETCH,
-  LOADING_DATA,
-  CLEAR_NOTIFICATION,
-  SHOW_NOTIFICATION,
-  SET_VALUE
+  SET_VALUE,
+  ADD_INLINE_PRODUCT,
+  CLEAR_INLINE_PRODUCT,
+  CHECK_INLINE_PRODUCT
 } from "../actions/actionTypes";
 export function productReducer(
   initialState = {
-    showPopup: false,
-    product: [],
-    beingEdited: false,
-    notification: {},editClicked: false
+    product: []
   },
   action
 ) {
@@ -33,11 +27,7 @@ export function productReducer(
         { product: product },
         { beingEdited: false }
       );
-    case SHOW_POPUP:
-      return Object.assign({}, initialState, action.payload);
     case SET_VALUE:
-      return Object.assign({}, initialState, action.payload);
-    case SHOW_ALERT:
       return Object.assign({}, initialState, action.payload);
     case DELETE_PRODUCT:
       let prevProduct = initialState.product,
@@ -46,14 +36,47 @@ export function productReducer(
       return Object.assign({}, initialState, { product: prevProduct });
     case GET_PRODUCT:
       return Object.assign({}, initialState, action.payload);
-    case FAILED_TO_FETCH:
-      return Object.assign({}, initialState, action.payload);
-    case LOADING_DATA:
-      return Object.assign({}, initialState, action.payload);
-    case CLEAR_NOTIFICATION:
-      return Object.assign({}, initialState, action.payload);
-    case SHOW_NOTIFICATION:
-      return Object.assign({}, initialState, action.payload);
+    case ADD_INLINE_PRODUCT:
+      if (
+        initialState.product[initialState.product.length - 1] &&
+        initialState.product[initialState.product.length - 1]._id ===
+          "ADD_INLINE_PRODUCT"
+      )
+        return initialState;
+      return Object.assign({}, initialState, {
+        product: [
+          ...initialState.product,
+          {
+            productName: "",
+            itemQty: 0,
+            uom: "KG",
+            packSize: "",
+            packUom: "KG",
+            unitPrice: 0,
+            totalPrice: 0,
+            _id: "ADD_INLINE_PRODUCT"
+          }
+        ]
+      });
+    case CLEAR_INLINE_PRODUCT:
+      return Object.assign({}, initialState, {
+        product: [...initialState.product].splice(
+          0,
+          initialState.product.length - 1
+        )
+      });
+    case CHECK_INLINE_PRODUCT:
+      if (
+        initialState.product[initialState.product.length - 1] &&
+        initialState.product[initialState.product.length - 1]._id ===
+          "ADD_INLINE_PRODUCT"
+      )
+        return Object.assign({}, initialState, {
+          product: [...initialState.product].splice(
+            0,
+            initialState.product.length - 1
+          )
+        });
     default:
       return initialState;
   }
