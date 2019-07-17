@@ -350,7 +350,7 @@ class ProductComponent extends Component {
           <TableCell>{data.productName}</TableCell>
           <TableCell>{Number(data.itemQty).toFixed(2)}</TableCell>
           <TableCell>{data.uom}</TableCell>
-          <TableCell>{Number(data.packSize)}</TableCell>
+          <TableCell>{Number(data.packSize).toFixed(2)}</TableCell>
           <TableCell>{data.packUom}</TableCell>
           <TableCell>{Number(data.unitPrice).toFixed(2)}</TableCell>
           <TableCell>{Number(data.totalPrice).toFixed(2)}</TableCell>
