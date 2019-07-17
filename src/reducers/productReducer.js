@@ -48,12 +48,12 @@ export function productReducer(
           ...initialState.product,
           {
             productName: "",
-            itemQty: 0,
+            itemQty: "",
             uom: "KG",
             packSize: "",
             packUom: "KG",
-            unitPrice: 0,
-            totalPrice: 0,
+            unitPrice: "",
+            totalPrice: "",
             _id: "ADD_INLINE_PRODUCT"
           }
         ]
