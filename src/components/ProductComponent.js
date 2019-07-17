@@ -1,10 +1,6 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import {
-  addData,
-  getProduct,
-  addInlineProduct
-} from "../actions/addDetail";
+import { addData, getProduct, addInlineProduct } from "../actions/addDetail";
 import TextField from "@material-ui/core/TextField";
 import MenuItem from "@material-ui/core/MenuItem";
 import FormControl from "@material-ui/core/FormControl";
@@ -62,12 +58,12 @@ class ProductComponent extends Component {
     productId: "",
     product: {
       productName: "",
-      itemQty: 0,
+      itemQty: "",
       uom: "KG",
       packSize: "",
       packUom: "KG",
-      unitPrice: 0,
-      totalPrice: 0
+      unitPrice: "",
+      totalPrice: ""
     },
     addProduct: {
       productName: "",
@@ -90,10 +86,23 @@ class ProductComponent extends Component {
       this.state.productId === "ADD_INLINE_PRODUCT" ? "product" : "product";
     // If the element input being changed
     // is itemqty or unitprice then change the total price
-    if (elem.name === "itemQty" || elem.name === "unitPrice") {
+    if (
+      elem.name === "itemQty" ||
+      elem.name === "unitPrice" ||
+      elem.name === "packSize"
+    ) {
       let anotherUnit = elem.name === "itemQty" ? "unitPrice" : "itemQty";
-      let elemValue =
-        elem.name === "unitPrice"||"itemQty" ? Number(elem.value).toFixed(2) : elem.value;
+      let numberString = elem.value.toString(),
+        numArr = numberString.split(".");
+      console.log(numberString);
+      if (numArr.length === 2) {
+        numArr[1].length > 2 && (numArr[1] = numArr[1].slice(0, 2));
+        numArr = numArr.join(".");
+      } else if (numArr.length === 1) {
+        numArr = numArr.join("");
+      }
+
+      let elemValue = Number(numArr) || "";
       this.setState({
         [propName]: {
           ...this.state[propName],
@@ -159,6 +168,7 @@ class ProductComponent extends Component {
         "unitPrice",
         "totalPrice"
       ];
+
     requiredFields = requiredFields.filter(elem => {
       if (
         elem === "unitPrice" ||
@@ -193,10 +203,16 @@ class ProductComponent extends Component {
         });
       }, 500);
     } else {
+      //add ending zeros
+      // let digitProps = ["unitPrice", "totalPrice", "itemQty", "packSize"];
+      // digitProps.forEach(
+      //   val => data[val].toString().indexOf(".") < 0 && (data[val] = data[val]+".00")
+      // );
+      console.log(data);
       addData(
         {
           data: {
-            ...this.state[propName],
+            ...data,
             supplierId: supplierId
           }
         },
@@ -205,177 +221,7 @@ class ProductComponent extends Component {
       this.clearForm(propName);
     }
   };
-  //================== RENDER ROW ==============//
-  // renderDialog = () => {
-  //   const {
-  //       productName,
-  //       itemQty,
-  //       uom,
-  //       packSize,
-  //       packUom,
-  //       unitPrice,
-  //       totalPrice
-  //     } = this.state.addProduct,
-  //     classes = this.props.classes,
-  //     boundedHandleChange = this.handleChange.bind(this, true),
-  //     { addProductRequiredFields } = this.state;
-  //   return (
-  //     <StyledDialog
-  //       fullWidth={true}
-  //       maxWidth="sm"
-  //       open={this.props.showPopupState}
-  //     >
-  //       <form onSubmit={this.saveData.bind(this, true)}>
-  //         <Grid container>
-  //           <Grid item xs={12} md={6}>
-  //             <Typography variant="subtitle2">Item name</Typography>
-  //             <TextField
-  //               margin="dense"
-  //               variant="outlined"
-  //               name="productName"
-  //               type="text"
-  //               onChange={boundedHandleChange}
-  //               value={productName}
-  //               error={
-  //                 addProductRequiredFields.indexOf("productName") === -1
-  //                   ? false
-  //                   : true
-  //               }
-  //             />
-  //           </Grid>
-  //           <Grid item xs={12} sm={6}>
-  //             <Typography variant="subtitle2">Quantity</Typography>
-  //             <TextField
-  //               margin="dense"
-  //               variant="outlined"
-  //               name="itemQty"
-  //               type="number"
-  //               onChange={boundedHandleChange}
-  //               value={itemQty}
-  //               error={
-  //                 addProductRequiredFields.indexOf("itemQty") === -1
-  //                   ? false
-  //                   : true
-  //               }
-  //             />
-  //           </Grid>
-  //           <Grid item xs={12} md={6}>
-  //             <Typography variant="subtitle2">UOM</Typography>
-  //             <FormControl variant="outlined">
-  //               <Select
-  //                 value={uom}
-  //                 onChange={boundedHandleChange}
-  //                 input={<OutlinedInput name="uom" />}
-  //                 error={
-  //                   addProductRequiredFields.indexOf("uom") === -1
-  //                     ? false
-  //                     : true
-  //                 }
-  //               >
-  //                 <MenuItem value="KG">Kg</MenuItem>
-  //                 <MenuItem value="LTR">Ltr</MenuItem>
-  //                 <MenuItem value="LBS">lbs</MenuItem>
-  //               </Select>
-  //             </FormControl>
-  //           </Grid>
-  //           <Grid item xs={12} md={6}>
-  //             <Typography variant="subtitle2">pack size</Typography>
-  //             <TextField
-  //               margin="dense"
-  //               variant="outlined"
-  //               name="packSize"
-  //               type="number"
-  //               onChange={boundedHandleChange}
-  //               value={packSize}
-  //               error={
-  //                 addProductRequiredFields.indexOf("packSize") === -1
-  //                   ? false
-  //                   : true
-  //               }
-  //             />
-  //           </Grid>
-  //           <Grid item xs={12} md={6}>
-  //             <Typography variant="subtitle2">Pack UOM</Typography>
-  //             <FormControl variant="outlined">
-  //               <Select
-  //                 value={packUom}
-  //                 onChange={boundedHandleChange}
-  //                 input={<OutlinedInput name="packUom" />}
-  //                 error={
-  //                   addProductRequiredFields.indexOf("packUom") === -1
-  //                     ? false
-  //                     : true
-  //                 }
-  //               >
-  //                 <MenuItem value="KG">Kg</MenuItem>
-  //                 <MenuItem value="LTR">Ltr</MenuItem>
-  //                 <MenuItem value="LBS">lbs</MenuItem>
-  //               </Select>
-  //             </FormControl>
-  //           </Grid>
-  //           <Grid item xs={12} md={6}>
-  //             <Typography variant="subtitle2">unit price</Typography>
-  //             <TextField
-  //               margin="dense"
-  //               variant="outlined"
-  //               name="unitPrice"
-  //               type="number"
-  //               onChange={boundedHandleChange}
-  //               value={
-  //                 (unitPrice + "").indexOf(".") !== -1
-  //                   ? unitPrice
-  //                   : unitPrice + ".00"
-  //               }
-  //               error={
-  //                 addProductRequiredFields.indexOf("unitPrice") === -1
-  //                   ? false
-  //                   : true
-  //               }
-  //             />
-  //           </Grid>
-  //           <Grid item xs={12} md={6}>
-  //             <Typography variant="subtitle2">total price</Typography>
-  //             <TextField
-  //               margin="dense"
-  //               variant="outlined"
-  //               name="totalPrice"
-  //               type="number"
-  //               onChange={boundedHandleChange}
-  //               // disabled
-  //               value={
-  //                 (itemQty * unitPrice + "").indexOf(".") === -1
-  //                   ? itemQty * unitPrice + ".00"
-  //                   : itemQty * unitPrice
-  //               }
-  //               error={
-  //                 addProductRequiredFields.indexOf("totalPrice") === -1
-  //                   ? false
-  //                   : true
-  //               }
-  //             />
-  //           </Grid>
-  //           <Grid item xs={12} className={classes.gridMargin}>
-  //             <Button
-  //               type="submit"
-  //               // onClick={this.saveData.bind(this, true)}
-  //               variant="contained"
-  //               color="primary"
-  //               className={classes.btn}
-  //             >
-  //               save
-  //             </Button>
-  //             <Button
-  //               onClick={this.popupHide.bind(this, true)}
-  //               className={classes.btn}
-  //             >
-  //               cancel
-  //             </Button>
-  //           </Grid>
-  //         </Grid>
-  //       </form>
-  //     </StyledDialog>
-  //   );
-  // };
+
   renderRow = rowData => {
     var data = rowData.data;
     if (this.props.editClicked === true && data._id === this.state.productId) {
@@ -450,11 +296,7 @@ class ProductComponent extends Component {
           <TableCell>
             <TextField
               margin="dense"
-              value={
-                (unitPrice + "").indexOf(".") !== -1
-                  ? unitPrice
-                  : unitPrice + ".00"
-              }
+              value={unitPrice}
               name="unitPrice"
               type="number"
               onChange={this.handleChange.bind(this, false)}
@@ -467,7 +309,7 @@ class ProductComponent extends Component {
               value={
                 (itemQty * unitPrice + "").indexOf(".") === -1
                   ? itemQty * unitPrice + ".00"
-                  : itemQty * unitPrice
+                  : (itemQty * unitPrice).toFixed(2)
               }
               name="totalPrice"
               type="number"
@@ -506,20 +348,12 @@ class ProductComponent extends Component {
         <TableRow>
           <TableCell>{rowData.index + 1}</TableCell>
           <TableCell>{data.productName}</TableCell>
-          <TableCell>{data.itemQty}</TableCell>
+          <TableCell>{data.itemQty.toFixed(2)}</TableCell>
           <TableCell>{data.uom}</TableCell>
           <TableCell>{data.packSize}</TableCell>
           <TableCell>{data.packUom}</TableCell>
-          <TableCell>
-            {(data.unitPrice + "").indexOf(".") !== -1
-              ? data.unitPrice
-              : data.unitPrice + ".00"}
-          </TableCell>
-          <TableCell>
-            {(data.totalPrice + "").indexOf(".") !== -1
-              ? data.totalPrice
-              : data.totalPrice + ".00"}
-          </TableCell>
+          <TableCell>{data.unitPrice.toFixed(2)}</TableCell>
+          <TableCell>{data.totalPrice.toFixed(2)}</TableCell>
           <TableCell
             style={{
               display: "flex",
