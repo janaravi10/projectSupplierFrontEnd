@@ -348,12 +348,12 @@ class ProductComponent extends Component {
         <TableRow>
           <TableCell>{rowData.index + 1}</TableCell>
           <TableCell>{data.productName}</TableCell>
-          <TableCell>{data.itemQty.toFixed(2)}</TableCell>
+          <TableCell>{Number(data.itemQty).toFixed(2)}</TableCell>
           <TableCell>{data.uom}</TableCell>
-          <TableCell>{data.packSize}</TableCell>
+          <TableCell>{Number(data.packSize)}</TableCell>
           <TableCell>{data.packUom}</TableCell>
-          <TableCell>{data.unitPrice.toFixed(2)}</TableCell>
-          <TableCell>{data.totalPrice.toFixed(2)}</TableCell>
+          <TableCell>{Number(data.unitPrice).toFixed(2)}</TableCell>
+          <TableCell>{Number(data.totalPrice).toFixed(2)}</TableCell>
           <TableCell
             style={{
               display: "flex",
