@@ -5,12 +5,13 @@ import {
   CLEAR_INLINE_PRODUCT,
   CHECK_INLINE_PRODUCT
 } from "./actionTypes";
+import { BASE_URL } from "../config.js";
 import axios from "axios";
 // remove question
 export function addData(productData, isEdit) {
   return (dispatch, getState) => {
     console.log(isEdit);
-    let url = "http://localhost:5000/product/";
+    let url = BASE_URL + "/product/";
     url += isEdit ? "edit" : "add";
     axios
       .post(url, {
@@ -39,7 +40,7 @@ export function setProductValue(valueToSetInRedux) {
 export function deleteProduct(bodyData) {
   return (dispatch, getState) => {
     axios
-      .post("http://localhost:5000/product/delete", bodyData, {
+      .post(BASE_URL+"/product/delete", bodyData, {
         withCredentials: true
       })
       .then(function(response) {
@@ -65,7 +66,7 @@ export function checkInlineProduct() {
 export function getProduct(supplierId) {
   return dispatch => {
     axios
-      .post("http://localhost:5000/product/get", {
+      .post(BASE_URL+"/product/get", {
         supplierId
       })
       .then(res => {
@@ -75,11 +76,8 @@ export function getProduct(supplierId) {
             payload: { product: res.data.response }
           });
         } else {
-
         }
       })
-      .catch(function(err) {
-
-      });
+      .catch(function(err) {});
   };
 }

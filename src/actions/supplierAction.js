@@ -4,11 +4,12 @@ import {
   FORM_SUBMITTED,
   SET_VALUE
 } from "./actionTypes";
+import { BASE_URL } from "../config.js";
 import axios from "axios";
 // clear notification
 export function submitSupplierData(supplierData, isEdit) {
   return dispatch => {
-    let url = "http://localhost:5000/supplier/";
+    let url = BASE_URL + "/supplier/";
     url += isEdit ? "edit" : "add";
     console.log(url);
     axios
@@ -44,7 +45,7 @@ export function setValue(valueToSetInRedux) {
 export function getListOfSupplier() {
   return dispatch => {
     axios
-      .get("http://localhost:5000/supplier/get")
+      .get(BASE_URL+"/supplier/get")
       .then(res => {
         if (res.data.type === "SUCCESSFUL") {
           dispatch({
@@ -74,13 +75,13 @@ export function closeSnackBar(closeBarState, bar) {
 export function deleteSupplier(supplierId) {
   return dispatch => {
     axios
-      .post("http://localhost:5000/supplier/delete", { supplierId })
+      .post(BASE_URL+"/supplier/delete", { supplierId })
       .then(res => {
         if (res.data.type === "SUCCESSFUL") {
-          console.log(res)
+          console.log(res);
           getListOfSupplier()(dispatch);
         } else {
-          console.log(res)
+          console.log(res);
         }
       })
       .catch(function(err) {});
