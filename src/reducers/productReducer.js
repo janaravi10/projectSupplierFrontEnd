@@ -7,9 +7,19 @@ import {
   CLEAR_INLINE_PRODUCT,
   CHECK_INLINE_PRODUCT
 } from "../actions/actionTypes";
+const suggestions = [
+  { label: "KG" },
+  { label: "LBS" },
+  { label: "LTR" },
+  { label: "GM" }
+].map(suggestion => ({
+  value: suggestion.label,
+  label: suggestion.label
+}));
 export function productReducer(
   initialState = {
-    product: []
+    product: [],
+    unitSuggestion: { uom: suggestions }
   },
   action
 ) {
@@ -33,7 +43,9 @@ export function productReducer(
       let prevProduct = initialState.product,
         id = action.payload.productId;
       prevProduct = prevProduct.filter((val, index) => index !== +id);
-      return Object.assign({}, initialState, { product: prevProduct });
+      return Object.assign({}, initialState, {
+        product: prevProduct
+      });
     case GET_PRODUCT:
       return Object.assign({}, initialState, action.payload);
     case ADD_INLINE_PRODUCT:
@@ -47,13 +59,16 @@ export function productReducer(
         product: [
           ...initialState.product,
           {
-            productName: "",
-            itemQty: "",
-            uom: "KG",
-            packSize: "",
-            packUom: "KG",
-            unitPrice: "",
-            totalPrice: "",
+             productName: "",
+      itemQty: "",
+      uom: "KG",
+      packSize: "",
+      packUom: "KG",
+      unitPrice: "",
+      totalPrice: "",
+      dateField: "",
+      comment: "",
+      harmfulProd: false,
             _id: "ADD_INLINE_PRODUCT"
           }
         ]
