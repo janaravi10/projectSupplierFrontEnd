@@ -1,0 +1,7 @@
+.MuiTableCell-body {
+    border-bottom: none !important;
+}
+
+.MuiTable-root{
+    overflow-y: visible;
+}

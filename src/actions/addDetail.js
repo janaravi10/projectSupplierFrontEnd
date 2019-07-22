@@ -10,21 +10,22 @@ import axios from "axios";
 // remove question
 export function addData(productData, isEdit) {
   return (dispatch, getState) => {
-    console.log(isEdit);
-    let url = BASE_URL + "/product/";
-    url += isEdit ? "edit" : "add";
-    axios
-      .post(url, {
-        product: productData.data
-      })
-      .then(function(res) {
-        if (res.data.type === "SUCCESSFUL") {
-          getProduct(getState().supplier.currentSupplier)(dispatch);
-
-          setProductValue({ editClicked: false })(dispatch);
-        } else {
-        }
-      });
+    // console.log(isEdit);
+    let url = BASE_URL + "/product";
+    url += isEdit
+      ? "/" + productData.data._id
+      : "/" + productData.data.supplierId;
+    console.log(productData.data, url);
+    axios[isEdit ? "put" : "post"](url, {
+      product: productData.data
+    }).then(function(res) {
+      console.log(res);
+      if (res.data.type === "SUCCESSFUL") {
+        getProduct(getState().supplier.currentSupplier)(dispatch);
+        setProductValue({ editClicked: false })(dispatch);
+      } else {
+      }
+    });
   };
 }
 // clear notification
@@ -39,10 +40,9 @@ export function setProductValue(valueToSetInRedux) {
 
 export function deleteProduct(bodyData) {
   return (dispatch, getState) => {
+    console.log(bodyData);
     axios
-      .post(BASE_URL+"/product/delete", bodyData, {
-        withCredentials: true
-      })
+      .delete(BASE_URL + "/product/" + bodyData.productId)
       .then(function(response) {
         console.log(response);
         if (response.data.type === "SUCCESSFUL") {
@@ -66,7 +66,7 @@ export function checkInlineProduct() {
 export function getProduct(supplierId) {
   return dispatch => {
     axios
-      .post(BASE_URL+"/product/get", {
+      .get(BASE_URL + "/product/" + supplierId, {
         supplierId
       })
       .then(res => {

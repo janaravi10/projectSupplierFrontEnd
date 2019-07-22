@@ -9,26 +9,24 @@ import axios from "axios";
 // clear notification
 export function submitSupplierData(supplierData, isEdit) {
   return dispatch => {
-    let url = BASE_URL + "/supplier/";
-    url += isEdit ? "edit" : "add";
-    console.log(url);
-    axios
-      .post(url, {
-        supplier: supplierData
-      })
-      .then(res => {
-        console.log(res);
+    console.log(supplierData)
+    let url = BASE_URL + "/supplier";
+    url += isEdit ? "/" + supplierData.transactionId : "";
+    axios[isEdit ? "put" : "post"](url, {
+      supplier: supplierData
+    }).then(res => {
+      console.log(res);
 
-        if (res.data.type === "SUCCESSFUL") {
-          dispatch({
-            type: FORM_SUBMITTED,
-            payload: {
-              formSubmitSuccess: true,
-              reRoute: true
-            }
-          });
-        }
-      });
+      if (res.data.type === "SUCCESSFUL") {
+        dispatch({
+          type: FORM_SUBMITTED,
+          payload: {
+            formSubmitSuccess: true,
+            reRoute: true
+          }
+        });
+      }
+    });
   };
 }
 
@@ -45,7 +43,7 @@ export function setValue(valueToSetInRedux) {
 export function getListOfSupplier() {
   return dispatch => {
     axios
-      .get(BASE_URL+"/supplier/get")
+      .get(BASE_URL + "/supplier")
       .then(res => {
         if (res.data.type === "SUCCESSFUL") {
           dispatch({
@@ -75,7 +73,7 @@ export function closeSnackBar(closeBarState, bar) {
 export function deleteSupplier(supplierId) {
   return dispatch => {
     axios
-      .post(BASE_URL+"/supplier/delete", { supplierId })
+      .delete(BASE_URL + "/supplier/" + supplierId, { supplierId })
       .then(res => {
         if (res.data.type === "SUCCESSFUL") {
           console.log(res);
