@@ -9,6 +9,7 @@ import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
 import Divider from "@material-ui/core/Divider";
+import Tooltip from "@material-ui/core/Tooltip";
 import IconButton from "@material-ui/core/IconButton";
 import Delete from "@material-ui/icons/Delete";
 import Create from "@material-ui/icons/Create";
@@ -64,30 +65,38 @@ class SupplierList extends Component {
         <React.Fragment>
           <ListItem key={elem.transactionId}>
             <ListItemText primary={elem.transactionId} />
-            <IconButton
-              component={Link}
-              to={{
-                pathname: "/supplier",
-                state: { currentSupplier: elem.transactionId }
-              }}
-              data-transactionid={elem.transactionId}
-            >
-              <Launch />
-            </IconButton>
-            <IconButton
-              data-transactionid={elem.transactionId}
-              onClick={this.handleEditClick}
-              label="Comments"
-            >
-              <Create />
-            </IconButton>
-            <IconButton
-              data-transactionid={elem.transactionId}
-              aria-label="delete"
-              onClick={this.props.deleteSupplier.bind(this, elem.transactionId)}
-            >
-              <Delete />
-            </IconButton>
+            <Tooltip title="View supplier and product details">
+              <IconButton
+                component={Link}
+                to={{
+                  pathname: "/supplier",
+                  state: { currentSupplier: elem.transactionId }
+                }}
+                data-transactionid={elem.transactionId}
+              >
+                <Launch />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Edit supplier">
+              <IconButton
+                data-transactionid={elem.transactionId}
+                onClick={this.handleEditClick}
+              >
+                <Create />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Delete supplier">
+              <IconButton
+                data-transactionid={elem.transactionId}
+                aria-label="delete"
+                onClick={this.props.deleteSupplier.bind(
+                  this,
+                  elem.transactionId
+                )}
+              >
+                <Delete />
+              </IconButton>
+            </Tooltip>
           </ListItem>
           {isDivider}
         </React.Fragment>

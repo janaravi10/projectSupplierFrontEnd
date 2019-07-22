@@ -1,14 +1,11 @@
 import React from "react";
-import clsx from "clsx";
 import Select from "react-select";
-import { emphasize, makeStyles, useTheme } from "@material-ui/core/styles";
+import { makeStyles, useTheme } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import NoSsr from "@material-ui/core/NoSsr";
 import TextField from "@material-ui/core/TextField";
 import Paper from "@material-ui/core/Paper";
-import Chip from "@material-ui/core/Chip";
 import MenuItem from "@material-ui/core/MenuItem";
-import CancelIcon from "@material-ui/icons/Cancel";
 import PropTypes from "prop-types";
 // redux
 import { connect } from "react-redux";
@@ -20,7 +17,8 @@ const useStyles = makeStyles(theme => ({
   input: {
     display: "flex",
     padding: 0,
-    height: "60px",zIndex: 0,
+    height: "60px",
+    zIndex: 0,
     width: "269px"
   },
   valueContainer: {
@@ -31,17 +29,6 @@ const useStyles = makeStyles(theme => ({
     overflow: "hidden",
     zIndex: 99999
   },
-  chip: {
-    margin: theme.spacing(0.5, 0.25)
-  },
-  chipFocused: {
-    backgroundColor: emphasize(
-      theme.palette.type === "light"
-        ? theme.palette.grey[300]
-        : theme.palette.grey[700],
-      0.08
-    )
-  },
   noOptionsMessage: {
     padding: theme.spacing(1, 2)
   },
@@ -50,12 +37,12 @@ const useStyles = makeStyles(theme => ({
     position: "relative",
     left: "10px"
   },
-  placeholder: {
-    position: "relative",
-    left: "10px",
-    fontSize: 16,
-    zIndex: 0
-  },
+  // placeholder: {
+  //   position: "relative",
+  //   left: "10px",
+  //   fontSize: 16,
+  //   zIndex: 0
+  // },
   paper: {
     position: "absolute",
     zIndex: 1,
@@ -69,7 +56,7 @@ const useStyles = makeStyles(theme => ({
   },
   menu: {
     width: "100%",
-    zIndex: 99999
+    zIndex: 99999999
   }
 }));
 
@@ -156,24 +143,6 @@ Option.propTypes = {
   isSelected: PropTypes.bool
 };
 
-function Placeholder(props) {
-  return (
-    <Typography
-      color="textSecondary"
-      className={props.selectProps.classes.placeholder}
-      {...props.innerProps}
-    >
-      {props.children}
-    </Typography>
-  );
-}
-
-Placeholder.propTypes = {
-  children: PropTypes.node,
-  innerProps: PropTypes.object,
-  selectProps: PropTypes.object.isRequired
-};
-
 function SingleValue(props) {
   return (
     <Typography
@@ -204,27 +173,6 @@ ValueContainer.propTypes = {
   selectProps: PropTypes.object.isRequired
 };
 
-function MultiValue(props) {
-  return (
-    <Chip
-      tabIndex={-1}
-      label={props.children}
-      className={clsx(props.selectProps.classes.chip, {
-        [props.selectProps.classes.chipFocused]: props.isFocused
-      })}
-      onDelete={props.removeProps.onClick}
-      deleteIcon={<CancelIcon {...props.removeProps} />}
-    />
-  );
-}
-
-MultiValue.propTypes = {
-  children: PropTypes.node,
-  isFocused: PropTypes.bool,
-  removeProps: PropTypes.object.isRequired,
-  selectProps: PropTypes.object.isRequired
-};
-
 function Menu(props) {
   return (
     <Paper
@@ -246,12 +194,12 @@ Menu.propTypes = {
 const components = {
   Control,
   Menu,
-  MultiValue,
   NoOptionsMessage,
   Option,
-  Placeholder,
   SingleValue,
-  ValueContainer
+  ValueContainer,
+  DropdownIndicator: () => null,
+  IndicatorSeparator: () => null
 };
 
 function AutoSelect(props) {
@@ -264,7 +212,6 @@ function AutoSelect(props) {
 
   const selectStyles = {
     input: base => ({
-      ...base,
       color: theme.palette.text.primary,
       "& input": {
         font: "inherit"
@@ -274,6 +221,7 @@ function AutoSelect(props) {
   const handleBlurCountryChange = e => {
     let target = e.target,
       inputVal = target.value;
+    console.log(props.name, props.suggestion);
     let countryArr = props.suggestion[props.name].map(function(val) {
         return val.label;
       }),
@@ -294,8 +242,16 @@ function AutoSelect(props) {
           classes={classes}
           styles={selectStyles}
           inputId="react-select-single"
-          TextFieldProps={{
-            placeholder: "select your country"
+          // TextFieldProps={{
+          //   placeholder: "search country"
+          // }}
+          placeholder="search country.."
+          styles={{
+            placeholder: base => ({
+              fontSize: "16px",
+              color: "#adadad",
+              paddingLeft: 10
+            })
           }}
           onBlur={handleBlurCountryChange}
           isClearable={true}
@@ -309,10 +265,4 @@ function AutoSelect(props) {
     </div>
   );
 }
-const mapStateToProps = state => {
-  return {
-    suggestion: state.supplier.suggestion
-  };
-};
-
-export default connect(mapStateToProps)(AutoSelect);
+export default AutoSelect;

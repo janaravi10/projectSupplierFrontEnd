@@ -1,4 +1,5 @@
 import React from "react";
+// import AutoSelectInline from "./AutoSelectInline";
 import { withStyles } from "@material-ui/styles";
 import { KeyboardDatePicker } from "@material-ui/pickers";
 import DateFnsUtils from "@date-io/date-fns";
@@ -95,7 +96,7 @@ class Supplier extends React.Component {
       supplierInvoice: "",
       poReference: ""
     },
-    dateError: {},
+    dateError: { transactionDate: false, billOfEntryDate: false },
     errorFields: [],
     formSubmitSuccess: false
   };
@@ -144,10 +145,12 @@ class Supplier extends React.Component {
     setTimeout(() => {
       this.setState({ errorFields: [] });
     }, 500);
-    let dateError = Object.keys(this.state.dateError).reduce(
-      e => this.state.dateError[e]
-    ,"");
-    if (!requiredFields.length && !dateError.length) {
+    let dateError = this.state.dateError;
+    if (
+      !requiredFields.length &&
+      !dateError.transactionDate &&
+      !dateError.billOfEntryDate
+    ) {
       this.props.submitSupplierData(stateVal, this.props.editMode);
     } else {
     }
@@ -254,6 +257,7 @@ class Supplier extends React.Component {
                 name="importCountry"
                 updateSelectValue={this.handleSelectValue}
                 selectValue={this.state.supplierField["importCountry"]}
+                suggestion={this.props.suggestion}
               />
             </StyledGrid>
             <StyledGrid item xs={12} md={6}>
@@ -264,6 +268,7 @@ class Supplier extends React.Component {
                 name="countryOfOrigin"
                 updateSelectValue={this.handleSelectValue}
                 selectValue={this.state.supplierField["countryOfOrigin"]}
+                suggestion={this.props.suggestion}
               />
             </StyledGrid>
 
@@ -370,7 +375,8 @@ const mapStateToProps = state => ({
   reRoute: state.supplier.reRoute,
   editMode: state.supplier.editMode,
   supplierToBeEdited: state.supplier.supplierToBeEdited,
-  suppliers: state.supplier.suppliers
+  suppliers: state.supplier.suppliers,
+  suggestion: state.supplier.suggestion
 });
 const mapDispatchToProps = {
   submitSupplierData,
